@@ -2,14 +2,14 @@ require 'json'
 require 'deep_clone'
 
 def haveChild(data)
-    have = false
+    child = false
     for i in 0...data.length
         if data[i] > 2
-            have = true
+            child = true
             break
         end
     end
-    return have
+    return child
 end
 
 def setChild(form, status)
@@ -19,7 +19,6 @@ def setChild(form, status)
     else
         status = 0
     end
-
     sibling_form = []
     for i in 0...form.length
         for j in 0...(form[i]/2).to_i
@@ -81,16 +80,17 @@ def aiTurn(data, win_cond, explore, koef, isPrint)
                 end
             end
         end
+        index = best_index
     end
     
     if isPrint == 1
         puts ""
         for i in 0...(data['child']).length
-            print "#{(i+1)} . "
+            print "#{(i+1)}) "
             for j in 0...(data['child'][i]['form']).length
                 print " #{data['child'][i]['form'][j]}  "
             end
-            puts "\t #{data['child'][i]['x']}"
+            puts "\t| #{data['child'][i]['x']}"
         end
         puts "\nAI memilih langkah ke #{(best_index + 1)}"
     end
@@ -100,14 +100,14 @@ end
 def playerTurn(data, win_cond, player)
     puts ""
     for i in 0...(data['child']).length
-        print "#{(i+1)} . "
+        print "#{(i+1)}) "
         for j in 0...(data['child'][i]['form']).length
             print " #{data['child'][i]['form'][j]} "
         end
-        print "\t #{data['child'][i]['x']}"
+        puts "\t| #{data['child'][i]['x']}"
     end
     while true do
-        print "Player #{player}\nInputkan langkah berikutnya : "
+        print "\nPlayer #{player} | Input langkah berikutnya = "
         pilihan = gets.chomp
         if CheckInt(pilihan)
             pilihan = pilihan.to_i
@@ -130,11 +130,11 @@ def play(data, explore, jumlah_main, koef, player1, player2, isPrint)
         tmp_data = data
         while tmp_data['child'].length > 0
             if isPrint == 1
-                puts "Kondisi saat ini"
+                print "\nJumlah batang saat ini = "
                 for i in 0...(tmp_data['form']).length
-                    print " #{tmp_data['form'][i]} "
+                    print "#{tmp_data['form'][i]} "
                 end
-                puts ""
+                print "\n-------------------------"
             end
             if turn == 1
                 if player1 == 1
@@ -166,7 +166,7 @@ def readFile(filename)
     begin
         file = File.open(filename, "r")
         file_content = file.read
-        puts "Read file #{filename}"
+        puts "\nData file #{filename} = "
         unless file_content
             puts "Tidak ada data dalam file #{filename}"
         end
@@ -194,6 +194,7 @@ def CheckFloat(s)
     end
 end
 
+puts "Reinforcement Learning\n-------------------------"
 while true do
     print "1. Buat Data Baru\n2. Ambil Data dari File\n"
     print "Pilih Sumber Data : "
@@ -201,13 +202,13 @@ while true do
     if [1, 2].include? mode_data
         break
     else
-        puts "Input Tidak Valid\n\n"
+        puts "Input tidak valid"
     end
 end
 filename = nil
 if mode_data == 2
     while true do
-        print "Nama File : "
+        print "\nNama file yang diload : "
         filename = gets.chomp.to_s
         dataJson = readFile(filename)
         data = JSON.parse(dataJson)
@@ -220,7 +221,7 @@ if mode_data == 2
     end
 else
     while true do
-        print "Input jumlah batang (5 - 15) : "
+        print "\nInput jumlah batang (5-15) : "
         jml_batang = gets.chomp
         if CheckInt(jml_batang)
             jumlah_batang = jml_batang.to_i
@@ -236,14 +237,14 @@ else
     start = Time.now
     data = createNimData(jumlah_batang)
     endt = Time.now
-    puts "Data berhasil dibuat.\nRuntime : #{endt - start} second"
-    puts "Data : \n #{data.to_json}"
+    puts "Data berhasil dibuat.\nRuntime = #{endt - start} second"
+    puts "\nData : \n #{data.to_json}"
 end
 
-puts "\nNIM GAME"
+puts "\nNIM GAME\n-------------------"
 while true do
-    puts "\n1.Human\n2.AI"
-    print "Pilih jenis player 1 : "
+    puts "Player 1\n1.Human\n2.AI"
+    print "Pilih jenis player 1 = "
     player1 = gets.chomp
     if CheckInt(player1)
         player1 = player1.to_i
@@ -258,13 +259,13 @@ while true do
             break
         end
     else
-        puts "Input Harus Bertipe Integer"
+        puts "Input harus bertipe Integer"
     end
 end
-
+puts ""
 while true do
-    puts "\n1.Human\n2.AI"
-    print "Pilih jenis player 2 : "
+    puts "Player 2\n1.Human\n2.AI"
+    print "Pilih jenis player 2 = "
     player2 = gets.chomp
     if CheckInt(player2)
         player2 = player2.to_i
@@ -279,7 +280,7 @@ while true do
             break
         end
     else
-        puts "Input Harus Bertipe Integer"
+        puts "Input harus bertipe Integer"
     end
 end
 
@@ -287,14 +288,15 @@ if player1 == 2 and player2 == 2
     mode = 1
     explore, jumlah_eksperimen, koef = nil, nil, nil
     output_file = filename
+    jumlah_eksperimen_awal = 0
     while true do
         if jumlah_eksperimen == nil
-            print "Inputkan jumlah eksperimen : "
+            print "\nInput jumlah eksperimen = "
             jumlah_eksperimen = gets.chomp
             if CheckInt(jumlah_eksperimen)
                 jumlah_eksperimen = jumlah_eksperimen.to_i
                 if jumlah_eksperimen < 0
-                    puts "Input tidak boleh 0"
+                    puts "Input harus bilangan positif"
                     jumlah_eksperimen = nil
                     next
                 end
@@ -305,7 +307,7 @@ if player1 == 2 and player2 == 2
             end
         end
         if koef == nil
-            print "Inputkan nilai koefisien [0 - 1] : "
+            print "Inputkan nilai koefisien [0-1] = "
             koef = gets.chomp
             if CheckFloat(koef)
                 koef = koef.to_f
@@ -321,7 +323,7 @@ if player1 == 2 and player2 == 2
             end
         end
         if explore == nil
-            print "Input presentase eksplorasi [0 - 1] : "
+            print "Input presentase eksplorasi [0-1] = "
             explore = gets.chomp
             if CheckFloat(explore)
                 explore = explore.to_f
@@ -337,25 +339,24 @@ if player1 == 2 and player2 == 2
             end
         end
         if output_file == nil
-            print "Nama file output : "
+            print "Nama file output = "
             output_file = gets.chomp.to_s
             if output_file == ""
                 output_file = nil
                 break
             end
         end
-        puts "Nak Kene"
         if explore != nil and jumlah_eksperimen != nil and koef != nil and output_file != nil
             break
         end
     end
-elsif player1 == 2 or player2 == 2
+elsif (player1 == 2 or player2 == 2) and mode_data == 1
     mode = 2
-    jumlah_eksperimen, koef, learn_again, learn, explore, koef_awal, explore_awal = nil, nil, nil, nil, nil, nil, nil
+    jumlah_eksperimen_awal, koef, learn_again, learn, explore, explore_next = nil, nil, nil, nil, nil, nil
     output_file = filename
     while true do
         if learn == nil
-            print "AI melakukan pembelajaran [Y/N] : "
+            print "AI melakukan pembelajaran sebelum bermain [Y/N] = "
             learn = gets.chomp
             unless ["Y", "y", "N", "n"].include? learn
                 puts "Input tidak valid"
@@ -363,29 +364,29 @@ elsif player1 == 2 or player2 == 2
                 next
             else
                 if ["N","n"].include? learn
-                    jumlah_eksperimen_awal = 1
+                    jumlah_eksperimen_awal = 0
                     koef_awal, explore_awal = 0, 0
                 end
             end
         end
-        if jumlah_eksperimen == nil and (["Y",'y'].include? learn or ["Y","y"].include? learn_again)
-            puts "Inputkan jumlah eksperimen : "
-            jumlah_eksperimen = gets.chomp
-            if CheckInt(jumlah_eksperimen)
-                jumlah_eksperimen = jumlah_eksperimen.to_i
-                if jumlah_eksperimen < 0
+        if jumlah_eksperimen_awal == nil and (["Y",'y'].include? learn or ["Y","y"].include? learn_again)
+            puts "Input jumlah eksperimen = "
+            jumlah_eksperimen_awal = gets.chomp
+            if CheckInt(jumlah_eksperimen_awal)
+                jumlah_eksperimen_awal = jumlah_eksperimen_awal.to_i
+                if jumlah_eksperimen_awal < 0
                     puts "Input harus berupa bilangan positf"
-                    jumlah_eksperimen = nil
+                    jumlah_eksperimen_awal = nil
                     next
                 end
             else
                 puts "Input harus bertipe Integer"
-                jumlah_eksperimen = nil
+                jumlah_eksperimen_awal = nil
                 next
             end
         end
         if koef == nil and (["Y",'y'].include? learn or ["Y","y"].include? learn_again)
-            print "Input nilai koefisien [0 - 1] : "
+            print "Input nilai koefisien [0-1] = "
             koef = gets.chomp
             if CheckFloat(koef)
                 koef = koef.to_f
@@ -401,7 +402,7 @@ elsif player1 == 2 or player2 == 2
             end
         end
         if explore == nil and (["Y",'y'].include? learn or ["Y","y"].include? learn_again)
-            print "Input presentase eksplorasi [0 - 1] : "
+            print "Input presentase eksplorasi [0-1] = "
             explore = gets.chomp
             if CheckFloat(explore)
                 explore = explore.to_f
@@ -412,63 +413,75 @@ elsif player1 == 2 or player2 == 2
                 end
             end
         end
+        if learn != nil and jumlah_eksperimen != nil and koef != nil and explore != nil
+            break
+        end
+    end
+
+    while true do
+        learn_again, explore_next = nil, nil
         if learn_again == nil
-            puts "AI tetap melakukan pembelajaran saat melawan user [Y/N] : "
+            print "\nAI melakukan pembelajaran saat bermain [Y/N] = "
             learn_again = gets.chomp
-            unless ["Y","y","N","n"].include? learn_again
-                puts "Input tidak sesuai"
+            if ["Y","y","N","n"].include? learn_again
+                puts "Input tidak valid"
                 learn_again = nil
                 next
+            else
+                if ["Y","y"].include? learn_again
+                    if explore_next == nil and (["Y","y"].include? learn or ["Y","y"].include? learn_again)
+                        print "Input presentase eksplorasi saat bermain [0-1] = "
+                        explore_next = gets.chomp
+                        if CheckFloat(explore_next)
+                            explore_next = explore_next.to_f
+                            if explore_next < 0 or explore_next > 1
+                                puts "Input melebihi atau kurang dari range"
+                                explore_next = nil
+                                learn_again = nil
+                                next
+                            end
+                        end
+                    end
+                else
+                    explore_next = 0
+                end
             end
         end
-        if learn != nil and learn_again != nil
-            if jumlah_eksperimen == nil
-                jumlah_eksperimen = jumlah_eksperimen_awal
-            end
-            if explore == nil
-                explore = 0
-            end
-            if koef == nil
-                koef = koef_awal
-            end
-            if explore_awal == nil
-                explore_awal = explore
-            end
-            if koef_awal == nil
-                koef_awal = koef
-            end
+        if learn_again != nil and explore_next != nil
             break
         end
     end
 else
     mode = 2
-    jumlah_eksperimen = 1
+    jumlah_eksperimen, jumlah_eksperimen_awal = 1, 1
     koef, output_file = nil, nil
-    explore = 0
+    explore, explore_next = 0, 0
 end
 
 if jumlah_eksperimen > 1 and mode == 2
     start = Time.now
-    play(data, explore_awal, jumlah_eksperimen, koef_awal, 2, 2, 0)
+    play(data, explore, jumlah_eksperimen_awal, koef, 2, 2, 0)
     endt = Time.now
+    puts "Data berhasil disimpan.\nRuntime = #{endt - start} second"
+end
+if mode == 2
     while true do
         puts data.to_json
-        puts "Data berhasil di simpan.\nRuntime : #{endt - start} second"
-        pemenang = play(data, 0, 1, koef, player1, player2, 1)
-        puts "GAME OVER"
+        pemenang = play(data, explore_next, 1, koef, player1, player2, 1)
+        puts "\nGame Selesai"
         if pemenang == 1
             pemenang_s = player1s
         else
             pemenang_s = player2s
         end
-        puts "Pemenang adalah player #{pemenang} : #{pemenang_s}"
+        puts "Pemenang player#{pemenang} = #{pemenang_s}"
         while true do
-            print "Main lagi [Y/N] : "
+            print "\nMain lagi [Y/N] = "
             lagi = gets.chomp
             if ["Y","y","N","n"].include? lagi
                 break
             else
-                puts "Input tidak sesuai"
+                puts "Input tidak valid"
             end
         end
         if ["Y","y"].include? lagi
